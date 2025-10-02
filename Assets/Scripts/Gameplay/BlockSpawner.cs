@@ -100,10 +100,17 @@ namespace ChromaticCascade.Gameplay
         /// </summary>
         public void OnBlockLocked(Block block)
         {
+            Debug.Log($"OnBlockLocked called for block at {block.GridPosition}");
+            
             if (currentFallingBlock == block)
             {
                 currentFallingBlock = null;
                 spawnTimer = 0f; // Reset spawn timer
+                Debug.Log("Current falling block cleared. Next block will spawn in " + spawnInterval + " seconds");
+            }
+            else
+            {
+                Debug.LogWarning($"Locked block {block.name} is not the current falling block!");
             }
         }
         

@@ -24,9 +24,13 @@ namespace ChromaticCascade.Core
         
         private GridCell[,] grid;
         
+        // Public properties for external access
+        public int GridWidth => gridWidth;
+        public int GridHeight => gridHeight;
         public int Width => gridWidth;
         public int Height => gridHeight;
         public float CellSize => cellSize;
+        public Vector3 GridOrigin => gridOrigin;
         
         private void Awake()
         {

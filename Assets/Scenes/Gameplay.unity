@@ -941,7 +941,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -100, y: -150}
+  m_AnchoredPosition: {x: -100, y: -100}
   m_SizeDelta: {x: 200, y: 200}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &731532064
@@ -1148,6 +1148,7 @@ GameObject:
   - component: {fileID: 860623452}
   - component: {fileID: 860623451}
   - component: {fileID: 860623450}
+  - component: {fileID: 860623454}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1242,7 +1243,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 6
+  orthographic size: 7
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -1267,12 +1268,27 @@ Transform:
   m_GameObject: {fileID: 860623449}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2.5, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &860623454
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 860623449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a18606c04b9cc41e19eda6d206dacdc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChromaticCascade.Core.CameraManager
+  gridManager: {fileID: 212028874}
+  verticalPadding: 1
+  horizontalPadding: 0.5
 --- !u!1 &888002825
 GameObject:
   m_ObjectHideFlags: 0
@@ -2123,7 +2139,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.2, g: 0.2, b: 0.2, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2381,32 +2397,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae61e7cc6ef3d41c79ad0c84fa7cc121, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChromaticCascade.Gameplay.BlockFactory
-  allBlockData:
-  - {fileID: 11400000, guid: 8b8342073235a468594be0d5603639e6, type: 2}
-  - {fileID: 11400000, guid: 80aea21e4ae9a452dbca52e73bc9af10, type: 2}
-  - {fileID: 11400000, guid: 3e95b3fb861d44cd680db9b58d6bbfce, type: 2}
-  - {fileID: 11400000, guid: 4b03c44e8735b423bb43dc4bd3173ce3, type: 2}
-  - {fileID: 11400000, guid: 1ade55958e33f41db9ae9089e9b9e2d7, type: 2}
-  - {fileID: 11400000, guid: 80adb8a4ea7e04343973b91f01ab26ff, type: 2}
-  - {fileID: 11400000, guid: 064e4dd3c76ae4f039835fc2a2712ce0, type: 2}
-  - {fileID: 11400000, guid: 5c210b015204d4f0d997c391f9a9281d, type: 2}
-  - {fileID: 11400000, guid: 9925a2894483245819edced5797a1aae, type: 2}
-  - {fileID: 11400000, guid: 67435e7011cb049db9bd36f62527662f, type: 2}
-  - {fileID: 11400000, guid: 40f20a0c4e19e469f9e721ae81cf5858, type: 2}
-  - {fileID: 11400000, guid: 4263c0cf4fc384755a6e44615e7f7003, type: 2}
-  - {fileID: 11400000, guid: 234513d1ed7ec470ba92aa3bca138750, type: 2}
-  - {fileID: 11400000, guid: 82d864f7b35014e859f0fd9a63f25588, type: 2}
-  - {fileID: 11400000, guid: 16d18151c03bf4ac190d672361f6aee5, type: 2}
-  - {fileID: 11400000, guid: 4e053af841fb3455b831a9e8e0c20275, type: 2}
-  - {fileID: 11400000, guid: b99537ccf640c45ebb76b8d587b3f7a3, type: 2}
-  - {fileID: 11400000, guid: 3906572bde0544f7db01fc63ed4f0180, type: 2}
-  - {fileID: 11400000, guid: 788cbc8f77a47428184a3099ec7a967e, type: 2}
-  - {fileID: 11400000, guid: 1024d1f340d3e46ab98cb98d75625d56, type: 2}
-  - {fileID: 11400000, guid: 3b6b7cf6677a54c1cbae4bfd119fd463, type: 2}
-  - {fileID: 11400000, guid: 3bfbb02702b264c4585c41033065be3e, type: 2}
-  - {fileID: 11400000, guid: 4fc19d0ffe1d5400089d6f5d6ac918cf, type: 2}
-  - {fileID: 11400000, guid: 2df323bed20824417b9b67965ccd7255, type: 2}
-  - {fileID: 11400000, guid: 0c265ff45c2b14d67a63bade29d19ff2, type: 2}
+  allBlockData: []
   defaultBlockPrefab: {fileID: 958360241889385208, guid: c75a04617ec4d48279f61443b7aa4ee7, type: 3}
   blockPoolParent: {fileID: 0}
   initialPoolSize: 50

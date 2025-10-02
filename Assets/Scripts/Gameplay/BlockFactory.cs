@@ -34,8 +34,36 @@ namespace ChromaticCascade.Gameplay
             }
             Instance = this;
             
+            LoadBlockDataFromResources();
             InitializeBlockDatabase();
             InitializePool();
+        }
+        
+        /// <summary>
+        /// Auto-load BlockData assets from Resources/Data/Blocks folder
+        /// </summary>
+        private void LoadBlockDataFromResources()
+        {
+            // If manually assigned in Inspector, use those
+            if (allBlockData != null && allBlockData.Count > 0)
+            {
+                Debug.Log($"Using {allBlockData.Count} manually assigned BlockData assets");
+                return;
+            }
+            
+            // Otherwise, auto-load from Resources
+            allBlockData = new List<BlockData>();
+            BlockData[] loadedBlocks = Resources.LoadAll<BlockData>("Data/Blocks");
+            
+            if (loadedBlocks != null && loadedBlocks.Length > 0)
+            {
+                allBlockData.AddRange(loadedBlocks);
+                Debug.Log($"Auto-loaded {loadedBlocks.Length} BlockData assets from Resources/Data/Blocks");
+            }
+            else
+            {
+                Debug.LogError("No BlockData assets found! Make sure they are in Assets/Resources/Data/Blocks/");
+            }
         }
         
         /// <summary>

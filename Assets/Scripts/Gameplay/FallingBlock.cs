@@ -39,13 +39,8 @@ namespace ChromaticCascade.Gameplay
         {
             if (isLocked || block == null) return;
             
-            // Check if being controlled by player
-            if (PlayerController.Instance != null && PlayerController.Instance.IsControllingBlock(block))
-            {
-                // Player is controlling, don't auto-fall yet (will be handled by soft drop)
-                return;
-            }
-            
+            // Always auto-fall regardless of player control
+            // Player control only affects horizontal movement
             AutoFall();
         }
         
@@ -61,15 +56,18 @@ namespace ChromaticCascade.Gameplay
             if (fallTimer >= fallInterval)
             {
                 fallTimer = 0f;
+                Debug.Log($"[AutoFall] Attempting move from {block.GridPosition}");
                 
                 if (!TryMoveDown())
                 {
                     // Can't move down - start lock timer
+                    Debug.Log($"[AutoFall] Cannot move down from {block.GridPosition}. Starting lock timer.");
                     HandleGroundContact();
                 }
                 else
                 {
                     // Successfully moved - reset lock timer
+                    Debug.Log($"[AutoFall] Successfully moved to {block.GridPosition}");
                     isGrounded = false;
                     lockTimer = 0f;
                 }
@@ -90,7 +88,10 @@ namespace ChromaticCascade.Gameplay
             Vector2Int currentPos = block.GridPosition;
             Vector2Int newPos = currentPos + Vector2Int.down;
             
-            if (CanMoveTo(newPos))
+            bool canMove = CanMoveTo(newPos);
+            Debug.Log($"TryMoveDown: Current={currentPos}, New={newPos}, CanMove={canMove}");
+            
+            if (canMove)
             {
                 MoveToPosition(newPos);
                 return true;
@@ -108,12 +109,14 @@ namespace ChromaticCascade.Gameplay
             {
                 isGrounded = true;
                 lockTimer = 0f;
+                Debug.Log($"[HandleGroundContact] Block grounded at {block.GridPosition}. Lock timer started.");
             }
             
             lockTimer += Time.deltaTime;
             
             if (lockTimer >= lockDelay)
             {
+                Debug.Log($"[HandleGroundContact] Lock delay reached ({lockTimer:F2}s). Calling LockBlock().");
                 LockBlock();
             }
         }
@@ -123,8 +126,10 @@ namespace ChromaticCascade.Gameplay
         /// </summary>
         public bool CanMoveTo(Vector2Int gridPos)
         {
-            return GridManager.Instance.IsValidPosition(gridPos) &&
-                   !GridManager.Instance.IsCellOccupied(gridPos);
+            bool isValid = GridManager.Instance.IsValidPosition(gridPos);
+            bool isOccupied = GridManager.Instance.IsCellOccupied(gridPos);
+            Debug.Log($"[CanMoveTo] Checking {gridPos}: IsValid={isValid}, IsOccupied={isOccupied}");
+            return isValid && !isOccupied;
         }
         
         /// <summary>
@@ -190,15 +195,14 @@ namespace ChromaticCascade.Gameplay
         /// </summary>
         public void ResetLockDelay()
         {
-            if (!CanMoveTo(block.GridPosition + Vector2Int.down))
+            // Only reset if block can now move down (moved away from obstacle)
+            if (CanMoveTo(block.GridPosition + Vector2Int.down))
             {
-                lockTimer = 0f;
-            }
-            else
-            {
+                Debug.Log($"[ResetLockDelay] Block can move down now. Resetting lock timer.");
                 isGrounded = false;
                 lockTimer = 0f;
             }
+            // If still grounded, don't reset - let the timer continue
         }
     }
 }
