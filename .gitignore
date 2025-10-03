@@ -101,3 +101,5 @@ InitTestScene*.unity*
 # VS Code history and vscode settings
 .history/
 .vscode/
+docs/
+*.md

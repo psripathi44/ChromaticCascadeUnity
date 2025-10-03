@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 025814b13a4b84d1dbc5b8da0adab0d5, type: 3}
+  m_Name: BlockData_Yellow_Tier3
+  m_EditorClassIdentifier: Assembly-CSharp::ChromaticCascade.Data.BlockData
+  colorData: {fileID: 11400000, guid: d3080218e79a749dea65fc89d9a4d599, type: 2}
+  tierData: {fileID: 11400000, guid: 76375740dbe04437ea40c3c6613d5d11, type: 2}
+  blockSprite: {fileID: 0}
+  blockPrefab: {fileID: 0}
+  minBlocksToEvolve: 4
+  allows2x2Evolution: 1
+  displayName: 
+  description: 
