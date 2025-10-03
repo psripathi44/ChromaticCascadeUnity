@@ -88,8 +88,12 @@ namespace ChromaticCascade.Gameplay
             
             currentFallingBlock = BlockFactory.Instance.CreateBlock(blockData, spawnWorldPos);
             
-            // Add falling behavior
-            FallingBlock fallingBehavior = currentFallingBlock.gameObject.AddComponent<FallingBlock>();
+            // Add falling behavior (check if it doesn't already exist)
+            FallingBlock fallingBehavior = currentFallingBlock.gameObject.GetComponent<FallingBlock>();
+            if (fallingBehavior == null)
+            {
+                fallingBehavior = currentFallingBlock.gameObject.AddComponent<FallingBlock>();
+            }
             fallingBehavior.Initialize(currentFallingBlock);
             
             Debug.Log($"Spawned block: {blockData.GetBlockID()} at {spawnGridPos}");

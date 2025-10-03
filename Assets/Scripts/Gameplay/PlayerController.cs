@@ -122,7 +122,13 @@ namespace ChromaticCascade.Gameplay
             if (fallingComponent.CanMoveTo(newPos))
             {
                 fallingComponent.MoveToPosition(newPos);
-                fallingComponent.ResetLockDelay(); // Reset lock delay on successful move
+                // Only reset lock delay if the block can now fall down after the horizontal move
+                // This prevents interfering with the lock timer when the block is still grounded
+                Vector2Int downPos = newPos + Vector2Int.down;
+                if (fallingComponent.CanMoveTo(downPos))
+                {
+                    fallingComponent.ResetLockDelay();
+                }
                 return true;
             }
             

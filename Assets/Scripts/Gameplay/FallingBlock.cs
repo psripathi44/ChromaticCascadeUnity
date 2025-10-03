@@ -10,7 +10,7 @@ namespace ChromaticCascade.Gameplay
     {
         [Header("Fall Settings")]
         [SerializeField] private float fallSpeed = 1f; // Cells per second
-        [SerializeField] private float lockDelay = 0.5f; // Time before locking when on ground
+        [SerializeField] private float lockDelay = 0.05f; // Time before locking when on ground (DEBUG: very fast for testing)
         
         private Block block;
         private float fallTimer = 0f;
@@ -61,7 +61,7 @@ namespace ChromaticCascade.Gameplay
                 if (!TryMoveDown())
                 {
                     // Can't move down - start lock timer
-                    Debug.Log($"[AutoFall] Cannot move down from {block.GridPosition}. Starting lock timer.");
+                    Debug.Log($"[AutoFall] Cannot move down from {block.GridPosition}. Calling HandleGroundContact().");
                     HandleGroundContact();
                 }
                 else
@@ -109,10 +109,14 @@ namespace ChromaticCascade.Gameplay
             {
                 isGrounded = true;
                 lockTimer = 0f;
-                Debug.Log($"[HandleGroundContact] Block grounded at {block.GridPosition}. Lock timer started.");
+                Debug.Log($"[HandleGroundContact] Block grounded at {block.GridPosition}. Lock timer started. LockDelay={lockDelay:F2}s");
             }
             
-            lockTimer += Time.deltaTime;
+            // Use unscaled time to avoid issues with very small deltaTime
+            float deltaTime = Mathf.Max(Time.unscaledDeltaTime, 0.016f); // Minimum 60fps equivalent
+            float oldTimer = lockTimer;
+            lockTimer += deltaTime;
+            Debug.Log($"[HandleGroundContact] Timer: {oldTimer:F3}s + {deltaTime:F3}s = {lockTimer:F3}s / {lockDelay:F2}s (Component: {GetInstanceID()})");
             
             if (lockTimer >= lockDelay)
             {
@@ -146,7 +150,13 @@ namespace ChromaticCascade.Gameplay
         /// </summary>
         private void LockBlock()
         {
-            if (isLocked) return;
+            Debug.Log($"[LockBlock] Called for block at {block.GridPosition}");
+            
+            if (isLocked) 
+            {
+                Debug.Log($"[LockBlock] Block already locked, returning");
+                return;
+            }
             
             isLocked = true;
             block.Lock();
@@ -163,10 +173,10 @@ namespace ChromaticCascade.Gameplay
                 EvolutionDetector.Instance.CheckForEvolutions();
             }
             
+            Debug.Log($"✅ Block locked at {block.GridPosition} - Component will be destroyed");
+            
             // Remove this component
             Destroy(this);
-            
-            Debug.Log($"Block locked at {block.GridPosition}");
         }
         
         /// <summary>
@@ -195,6 +205,8 @@ namespace ChromaticCascade.Gameplay
         /// </summary>
         public void ResetLockDelay()
         {
+            Debug.Log($"[ResetLockDelay] Called for block at {block.GridPosition}");
+            
             // Only reset if block can now move down (moved away from obstacle)
             if (CanMoveTo(block.GridPosition + Vector2Int.down))
             {
@@ -202,7 +214,10 @@ namespace ChromaticCascade.Gameplay
                 isGrounded = false;
                 lockTimer = 0f;
             }
-            // If still grounded, don't reset - let the timer continue
+            else
+            {
+                Debug.Log($"[ResetLockDelay] Block still grounded, keeping timer at {lockTimer:F2}s");
+            }
         }
     }
 }
