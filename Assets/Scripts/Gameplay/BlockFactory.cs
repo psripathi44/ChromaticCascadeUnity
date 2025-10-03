@@ -172,6 +172,10 @@ namespace ChromaticCascade.Gameplay
             // Position and initialize
             block.transform.position = worldPosition;
             
+            // Scale block to match grid cell size
+            float cellSize = GridManager.Instance.CellSize;
+            block.transform.localScale = Vector3.one * cellSize;
+            
             Vector2Int gridPos = GridManager.Instance.WorldToGrid(worldPosition);
             block.Initialize(blockData, gridPos);
             

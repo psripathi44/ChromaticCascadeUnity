@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 using ChromaticCascade.Core;
 
 namespace ChromaticCascade.Gameplay
@@ -81,6 +82,16 @@ namespace ChromaticCascade.Gameplay
                 {
                     currentBlock = spawnerBlock;
                     fallingComponent = currentBlock?.GetComponent<FallingBlock>();
+                }
+            }
+            
+            // DEBUG: Manual spawn for testing (Press 'N' key)
+            if (Keyboard.current != null && Keyboard.current.nKey.wasPressedThisFrame)
+            {
+                if (BlockSpawner.Instance != null)
+                {
+                    Debug.Log("[DEBUG] Manual spawn triggered by 'N' key");
+                    BlockSpawner.Instance.SpawnNextBlock();
                 }
             }
             

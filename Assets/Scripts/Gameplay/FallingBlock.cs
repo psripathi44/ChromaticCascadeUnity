@@ -39,9 +39,16 @@ namespace ChromaticCascade.Gameplay
         {
             if (isLocked || block == null) return;
             
-            // Always auto-fall regardless of player control
-            // Player control only affects horizontal movement
-            AutoFall();
+            // If grounded, always update lock timer
+            if (isGrounded)
+            {
+                HandleGroundContact();
+            }
+            else
+            {
+                // Only auto-fall when not grounded
+                AutoFall();
+            }
         }
         
         /// <summary>
@@ -50,14 +57,14 @@ namespace ChromaticCascade.Gameplay
         private void AutoFall()
         {
             fallTimer += Time.deltaTime;
-            
+
             float fallInterval = 1f / fallSpeed;
-            
+
             if (fallTimer >= fallInterval)
             {
                 fallTimer = 0f;
                 Debug.Log($"[AutoFall] Attempting move from {block.GridPosition}");
-                
+
                 if (!TryMoveDown())
                 {
                     // Can't move down - start lock timer
@@ -116,11 +123,16 @@ namespace ChromaticCascade.Gameplay
             float deltaTime = Mathf.Max(Time.unscaledDeltaTime, 0.016f); // Minimum 60fps equivalent
             float oldTimer = lockTimer;
             lockTimer += deltaTime;
-            Debug.Log($"[HandleGroundContact] Timer: {oldTimer:F3}s + {deltaTime:F3}s = {lockTimer:F3}s / {lockDelay:F2}s (Component: {GetInstanceID()})");
+            
+            // Log every 0.1 seconds instead of every frame
+            if (Mathf.FloorToInt(oldTimer * 10) != Mathf.FloorToInt(lockTimer * 10))
+            {
+                Debug.Log($"[HandleGroundContact] Lock timer: {lockTimer:F2}s / {lockDelay:F2}s ({(lockTimer/lockDelay*100):F0}%)");
+            }
             
             if (lockTimer >= lockDelay)
             {
-                Debug.Log($"[HandleGroundContact] Lock delay reached ({lockTimer:F2}s). Calling LockBlock().");
+                Debug.Log($"[HandleGroundContact] ⏰ Lock delay reached ({lockTimer:F2}s >= {lockDelay:F2}s). Calling LockBlock().");
                 LockBlock();
             }
         }
@@ -163,9 +175,18 @@ namespace ChromaticCascade.Gameplay
             
             // Register with grid
             GridManager.Instance.SetCellOccupied(block.GridPosition, block);
+            Debug.Log($"[LockBlock] Registered block at {block.GridPosition} with GridManager");
             
             // Notify spawner
-            BlockSpawner.Instance.OnBlockLocked(block);
+            if (BlockSpawner.Instance != null)
+            {
+                Debug.Log($"[LockBlock] Calling BlockSpawner.OnBlockLocked()");
+                BlockSpawner.Instance.OnBlockLocked(block);
+            }
+            else
+            {
+                Debug.LogError("[LockBlock] BlockSpawner.Instance is NULL!");
+            }
             
             // Trigger evolution check
             if (EvolutionDetector.Instance != null)
