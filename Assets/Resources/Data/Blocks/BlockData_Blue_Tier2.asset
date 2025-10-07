@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChromaticCascade.Data.BlockData
   colorData: {fileID: 11400000, guid: 21b7cf51b143f40a4ab87ca2232d6573, type: 2}
   tierData: {fileID: 11400000, guid: 7bd1c0354afc3459c858ba640039f920, type: 2}
-  blockSprite: {fileID: 0}
+  blockSprite: {fileID: -2615874204119335, guid: ef10a6c0c45134b3c853e879f94b2ede, type: 3}
   blockPrefab: {fileID: 0}
   minBlocksToEvolve: 4
   allows2x2Evolution: 1

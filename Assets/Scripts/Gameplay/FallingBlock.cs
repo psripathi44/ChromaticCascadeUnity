@@ -39,6 +39,13 @@ namespace ChromaticCascade.Gameplay
         {
             if (isLocked || block == null) return;
             
+            // Check for Time Freeze ability (Tier 5)
+            if (Abilities.TimeFreezeAbility.IsTimeFrozen())
+            {
+                // Don't fall while time is frozen
+                return;
+            }
+            
             // If grounded, always update lock timer
             if (isGrounded)
             {
@@ -50,7 +57,7 @@ namespace ChromaticCascade.Gameplay
                 AutoFall();
             }
         }
-        
+
         /// <summary>
         /// Automatic falling behavior
         /// </summary>
@@ -63,18 +70,18 @@ namespace ChromaticCascade.Gameplay
             if (fallTimer >= fallInterval)
             {
                 fallTimer = 0f;
-                Debug.Log($"[AutoFall] Attempting move from {block.GridPosition}");
+                // Debug.Log($"[AutoFall] Attempting move from {block.GridPosition}");
 
                 if (!TryMoveDown())
                 {
                     // Can't move down - start lock timer
-                    Debug.Log($"[AutoFall] Cannot move down from {block.GridPosition}. Calling HandleGroundContact().");
+                    // Debug.Log($"[AutoFall] Cannot move down from {block.GridPosition}. Calling HandleGroundContact().");
                     HandleGroundContact();
                 }
                 else
                 {
                     // Successfully moved - reset lock timer
-                    Debug.Log($"[AutoFall] Successfully moved to {block.GridPosition}");
+                    // Debug.Log($"[AutoFall] Successfully moved to {block.GridPosition}");
                     isGrounded = false;
                     lockTimer = 0f;
                 }
@@ -96,7 +103,7 @@ namespace ChromaticCascade.Gameplay
             Vector2Int newPos = currentPos + Vector2Int.down;
             
             bool canMove = CanMoveTo(newPos);
-            Debug.Log($"TryMoveDown: Current={currentPos}, New={newPos}, CanMove={canMove}");
+            // Debug.Log($"TryMoveDown: Current={currentPos}, New={newPos}, CanMove={canMove}");
             
             if (canMove)
             {
@@ -116,7 +123,7 @@ namespace ChromaticCascade.Gameplay
             {
                 isGrounded = true;
                 lockTimer = 0f;
-                Debug.Log($"[HandleGroundContact] Block grounded at {block.GridPosition}. Lock timer started. LockDelay={lockDelay:F2}s");
+                // Debug.Log($"[HandleGroundContact] Block grounded at {block.GridPosition}. Lock timer started. LockDelay={lockDelay:F2}s");
             }
             
             // Use unscaled time to avoid issues with very small deltaTime
@@ -125,14 +132,14 @@ namespace ChromaticCascade.Gameplay
             lockTimer += deltaTime;
             
             // Log every 0.1 seconds instead of every frame
-            if (Mathf.FloorToInt(oldTimer * 10) != Mathf.FloorToInt(lockTimer * 10))
-            {
-                Debug.Log($"[HandleGroundContact] Lock timer: {lockTimer:F2}s / {lockDelay:F2}s ({(lockTimer/lockDelay*100):F0}%)");
-            }
+            // if (Mathf.FloorToInt(oldTimer * 10) != Mathf.FloorToInt(lockTimer * 10))
+            // {
+            //     Debug.Log($"[HandleGroundContact] Lock timer: {lockTimer:F2}s / {lockDelay:F2}s ({(lockTimer/lockDelay*100):F0}%)");
+            // }
             
             if (lockTimer >= lockDelay)
             {
-                Debug.Log($"[HandleGroundContact] ⏰ Lock delay reached ({lockTimer:F2}s >= {lockDelay:F2}s). Calling LockBlock().");
+                // Debug.Log($"[HandleGroundContact] ⏰ Lock delay reached ({lockTimer:F2}s >= {lockDelay:F2}s). Calling LockBlock().");
                 LockBlock();
             }
         }
@@ -144,7 +151,7 @@ namespace ChromaticCascade.Gameplay
         {
             bool isValid = GridManager.Instance.IsValidPosition(gridPos);
             bool isOccupied = GridManager.Instance.IsCellOccupied(gridPos);
-            Debug.Log($"[CanMoveTo] Checking {gridPos}: IsValid={isValid}, IsOccupied={isOccupied}");
+            // Debug.Log($"[CanMoveTo] Checking {gridPos}: IsValid={isValid}, IsOccupied={isOccupied}");
             return isValid && !isOccupied;
         }
         
@@ -162,25 +169,26 @@ namespace ChromaticCascade.Gameplay
         /// </summary>
         private void LockBlock()
         {
-            Debug.Log($"[LockBlock] Called for block at {block.GridPosition}");
+            // Debug.Log($"[LockBlock] Called for block at {block.GridPosition}");
             
             if (isLocked) 
             {
-                Debug.Log($"[LockBlock] Block already locked, returning");
+                // Debug.Log($"[LockBlock] Block already locked, returning");
                 return;
             }
             
             isLocked = true;
-            block.Lock();
+            // DO NOT call block.Lock() here! That flag is for ability-based locking only.
+            // Placed blocks should be available for evolution matching.
             
             // Register with grid
             GridManager.Instance.SetCellOccupied(block.GridPosition, block);
-            Debug.Log($"[LockBlock] Registered block at {block.GridPosition} with GridManager");
+            // Debug.Log($"[LockBlock] Registered block at {block.GridPosition} with GridManager");
             
-            // Notify spawner
+            // Notify spawner (which will trigger evolution check)
             if (BlockSpawner.Instance != null)
             {
-                Debug.Log($"[LockBlock] Calling BlockSpawner.OnBlockLocked()");
+                // Debug.Log($"[LockBlock] Calling BlockSpawner.OnBlockLocked()");
                 BlockSpawner.Instance.OnBlockLocked(block);
             }
             else
@@ -188,13 +196,10 @@ namespace ChromaticCascade.Gameplay
                 Debug.LogError("[LockBlock] BlockSpawner.Instance is NULL!");
             }
             
-            // Trigger evolution check
-            if (EvolutionDetector.Instance != null)
-            {
-                EvolutionDetector.Instance.CheckForEvolutions();
-            }
+            // Note: Evolution check is now handled by BlockSpawner.OnBlockLocked()
+            // to avoid duplicate checks and "Already processing evolutions!" warnings
             
-            Debug.Log($"✅ Block locked at {block.GridPosition} - Component will be destroyed");
+            // Debug.Log($"✅ Block locked at {block.GridPosition} - Component will be destroyed");
             
             // Remove this component
             Destroy(this);
@@ -226,19 +231,19 @@ namespace ChromaticCascade.Gameplay
         /// </summary>
         public void ResetLockDelay()
         {
-            Debug.Log($"[ResetLockDelay] Called for block at {block.GridPosition}");
+            // Debug.Log($"[ResetLockDelay] Called for block at {block.GridPosition}");
             
             // Only reset if block can now move down (moved away from obstacle)
             if (CanMoveTo(block.GridPosition + Vector2Int.down))
             {
-                Debug.Log($"[ResetLockDelay] Block can move down now. Resetting lock timer.");
+                // Debug.Log($"[ResetLockDelay] Block can move down now. Resetting lock timer.");
                 isGrounded = false;
                 lockTimer = 0f;
             }
-            else
-            {
-                Debug.Log($"[ResetLockDelay] Block still grounded, keeping timer at {lockTimer:F2}s");
-            }
+            // else
+            // {
+            //     Debug.Log($"[ResetLockDelay] Block still grounded, keeping timer at {lockTimer:F2}s");
+            // }
         }
     }
 }

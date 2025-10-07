@@ -72,6 +72,7 @@ namespace ChromaticCascade.Scoring
         public void AddBlockPlacementPoints()
         {
             AddScore(basePointsPerBlock, false);
+            Debug.Log($"[ScoreManager] +{basePointsPerBlock} points (Block Placement) | Total: {currentScore}");
         }
 
         /// <summary>

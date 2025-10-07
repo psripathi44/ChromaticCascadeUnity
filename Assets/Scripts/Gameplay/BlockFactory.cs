@@ -172,7 +172,8 @@ namespace ChromaticCascade.Gameplay
             // Position and initialize
             block.transform.position = worldPosition;
             
-            // Scale block to match grid cell size
+            // Scale block to fill the grid cell
+            // Assuming sprite is 1 unit = 100 pixels, we scale to match cell size
             float cellSize = GridManager.Instance.CellSize;
             block.transform.localScale = Vector3.one * cellSize;
             

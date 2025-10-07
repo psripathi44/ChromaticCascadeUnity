@@ -13,7 +13,6 @@ namespace ChromaticCascade.Gameplay
         public static EvolutionDetector Instance { get; private set; }
         
         [Header("Detection Settings")]
-        [SerializeField] private int minBlocksForEvolution = 4;
         [SerializeField] private bool allow2x2Detection = true;
         
         [Header("Debug")]
@@ -36,20 +35,42 @@ namespace ChromaticCascade.Gameplay
         /// </summary>
         public void CheckForEvolutions()
         {
+            Debug.Log("[EvolutionDetector] CheckForEvolutions() called - scanning grid...");
             checkedBlocks.Clear();
             
             List<List<Block>> matches = FindAllMatches();
             
+            Debug.Log($"[EvolutionDetector] Scan complete - found {matches.Count} evolution group(s)");
+            
             if (matches.Count > 0)
             {
-                Debug.Log($"Found {matches.Count} matches!");
-                
                 // Send to EvolutionResolver
                 if (EvolutionResolver.Instance != null)
                 {
                     EvolutionResolver.Instance.ProcessEvolutions(matches);
                 }
+                else
+                {
+                    Debug.LogError("[EvolutionDetector] EvolutionResolver.Instance is NULL! Add EvolutionResolver component to scene!");
+                }
             }
+        }
+        
+        /// <summary>
+        /// Public method to find all matches (for cascade detection)
+        /// </summary>
+        public List<List<Block>> FindAllMatchesPublic()
+        {
+            checkedBlocks.Clear();
+            return FindAllMatches();
+        }
+        
+        /// <summary>
+        /// Clear checked blocks (for cascade re-checking)
+        /// </summary>
+        public void ClearCheckedBlocks()
+        {
+            checkedBlocks.Clear();
         }
         
         /// <summary>
@@ -58,6 +79,8 @@ namespace ChromaticCascade.Gameplay
         private List<List<Block>> FindAllMatches()
         {
             List<List<Block>> allMatches = new List<List<Block>>();
+            int blocksScanned = 0;
+            int blocksEligible = 0;
             
             // Check for 4+ connected blocks (flood fill)
             for (int x = 0; x < GridManager.Instance.Width; x++)
@@ -67,13 +90,32 @@ namespace ChromaticCascade.Gameplay
                     Vector2Int pos = new Vector2Int(x, y);
                     Block block = GridManager.Instance.GetBlockAt(pos);
                     
-                    if (block != null && !checkedBlocks.Contains(block))
+                    if (block != null)
                     {
+                        blocksScanned++;
+                    }
+                    
+                    // Skip blocks that:
+                    // - Are already checked
+                    // - Just evolved (need to wait for next detection cycle)
+                    // - Are locked by abilities
+                    if (block != null && !checkedBlocks.Contains(block) && 
+                        !block.JustEvolved && !block.IsLocked)
+                    {
+                        blocksEligible++;
                         List<Block> connectedGroup = FindConnectedBlocks(block);
                         
-                        if (connectedGroup.Count >= minBlocksForEvolution)
+                        // Tier-specific evolution rules from gameplay.md:
+                        // Tier 1: Needs 4+ blocks
+                        // Tier 2-5: Needs 2+ blocks (easier to evolve on full board)
+                        int tierLevel = block.TierData != null ? block.TierData.tierLevel : 1;
+                        int requiredBlocks = (tierLevel == 1) ? 4 : 2;
+                        
+                        if (connectedGroup.Count >= requiredBlocks)
                         {
                             allMatches.Add(connectedGroup);
+                            
+                            Debug.Log($"[EvolutionDetector] Found {connectedGroup.Count} {block.ColorData.colorType}_Tier{tierLevel} blocks at {pos} (required: {requiredBlocks})");
                             
                             // Mark all blocks in this group as checked
                             foreach (Block b in connectedGroup)
@@ -84,6 +126,8 @@ namespace ChromaticCascade.Gameplay
                     }
                 }
             }
+            
+            Debug.Log($"[EvolutionDetector] Grid scan: {blocksScanned} total blocks, {blocksEligible} eligible for matching");
             
             // Check for 2x2 squares (if enabled)
             if (allow2x2Detection)
@@ -122,7 +166,11 @@ namespace ChromaticCascade.Gameplay
                         Block neighborBlock = neighborCell.occupyingBlock;
                         
                         // Check if matches and hasn't been visited
-                        if (!visited.Contains(neighborBlock) && current.Matches(neighborBlock))
+                        // Skip blocks that just evolved or are locked
+                        if (!visited.Contains(neighborBlock) && 
+                            current.Matches(neighborBlock) &&
+                            !neighborBlock.JustEvolved &&
+                            !neighborBlock.IsLocked)
                         {
                             visited.Add(neighborBlock);
                             toCheck.Enqueue(neighborBlock);

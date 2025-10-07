@@ -1,6 +1,7 @@
 using UnityEngine;
 using ChromaticCascade.Core;
 using ChromaticCascade.Data;
+using ChromaticCascade.Scoring;
 
 namespace ChromaticCascade.Gameplay
 {
@@ -59,25 +60,23 @@ namespace ChromaticCascade.Gameplay
                 return;
             }
             
-            if (currentFallingBlock != null)
-            {
-                // Debug logging every 60 frames (~1 second)
-                if (Time.frameCount % 60 == 0)
-                {
-                    Debug.Log($"[BlockSpawner] Waiting for current block to lock. CurrentBlock: {currentFallingBlock?.name} at {currentFallingBlock?.GridPosition}");
-                }
-                return;
-            }
-            
-            spawnTimer += Time.deltaTime;
-            
-            // Debug logging
-            if (spawnTimer >= spawnInterval * 0.9f && Time.frameCount % 10 == 0)
-            {
-                Debug.Log($"[BlockSpawner] Spawn timer: {spawnTimer:F2}s / {spawnInterval:F2}s (90% threshold reached)");
-            }
-            
-            if (spawnTimer >= spawnInterval)
+        if (currentFallingBlock != null)
+        {
+            // Debug logging every 60 frames (~1 second)
+            // if (Time.frameCount % 60 == 0)
+            // {
+            //     Debug.Log($"[BlockSpawner] Waiting for current block to lock. CurrentBlock: {currentFallingBlock?.name} at {currentFallingBlock?.GridPosition}");
+            // }
+            return;
+        }
+        
+        spawnTimer += Time.deltaTime;
+        
+        // Debug logging
+        // if (spawnTimer >= spawnInterval * 0.9f && Time.frameCount % 10 == 0)
+        // {
+        //     Debug.Log($"[BlockSpawner] Spawn timer: {spawnTimer:F2}s / {spawnInterval:F2}s (90% threshold reached)");
+        // }            if (spawnTimer >= spawnInterval)
             {
                 spawnTimer = 0f;
                 SpawnNextBlock();
@@ -121,7 +120,7 @@ namespace ChromaticCascade.Gameplay
             }
             fallingBehavior.Initialize(currentFallingBlock);
             
-            Debug.Log($"Spawned block: {blockData.GetBlockID()} at {spawnGridPos}");
+            // Debug.Log($"Spawned block: {blockData.GetBlockID()} at {spawnGridPos}");
         }
         
         /// <summary>
@@ -129,17 +128,35 @@ namespace ChromaticCascade.Gameplay
         /// </summary>
         public void OnBlockLocked(Block block)
         {
-            Debug.Log($"OnBlockLocked called for block at {block.GridPosition}");
+            // Debug.Log($"OnBlockLocked called for block at {block.GridPosition}");
             
             if (currentFallingBlock == block)
             {
                 currentFallingBlock = null;
                 spawnTimer = 0f; // Reset spawn timer
-                Debug.Log("Current falling block cleared. Next block will spawn in " + spawnInterval + " seconds");
+                // Debug.Log("Current falling block cleared. Next block will spawn in " + spawnInterval + " seconds");
+                
+                // Award points for block placement
+                if (ScoreManager.Instance != null)
+                {
+                    ScoreManager.Instance.AddBlockPlacementPoints();
+                }
+                
+                // Check for evolutions
+                if (EvolutionDetector.Instance != null)
+                {
+                    EvolutionDetector.Instance.CheckForEvolutions();
+                }
+                else
+                {
+                    Debug.LogError("[BlockSpawner] EvolutionDetector.Instance is NULL! Add EvolutionDetector component to scene!");
+                }
             }
             else
             {
-                Debug.LogWarning($"Locked block {block.name} is not the current falling block!");
+                // This is a block falling from gravity (not the spawned block)
+                // Don't award points or check evolutions - just let it settle
+                // Debug.Log($"Gravity block {block.name} locked at {block.GridPosition}");
             }
         }
         

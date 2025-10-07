@@ -724,6 +724,70 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &491621452
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 491621455}
+  - component: {fileID: 491621454}
+  - component: {fileID: 491621453}
+  m_Layer: 0
+  m_Name: EvolutionManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &491621453
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 491621452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4b88c274bec64deaab934a1afe58e85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChromaticCascade.Gameplay.EvolutionResolver
+  evolutionDelay: 0.3
+  enableCascades: 1
+  maxCascadeDepth: 10
+  highlightDuration: 0.5
+  mergeDuration: 0.3
+--- !u!114 &491621454
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 491621452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5f5ce095172e463d9455629d995fcc4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChromaticCascade.Gameplay.EvolutionDetector
+  allow2x2Detection: 1
+  debugVisualization: 0
+--- !u!4 &491621455
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 491621452}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.92962, y: -3.10111, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &614473329
 GameObject:
   m_ObjectHideFlags: 0
@@ -907,6 +971,60 @@ MonoBehaviour:
   moveDelay: 0.15
   softDropSpeedMultiplier: 5
   inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+--- !u!1 &711633459
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 711633460}
+  - component: {fileID: 711633461}
+  m_Layer: 0
+  m_Name: ScoreManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &711633460
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 711633459}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.92962, y: -3.10111, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &711633461
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 711633459}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b270b7b1ef84413e9055ebe2eb5d9f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChromaticCascade.Scoring.ScoreManager
+  basePointsPerBlock: 10
+  evolutionBonuses: 3200000064000000f4010000e8030000d0070000
+  comboDecayTime: 3
+  comboMultipliers:
+  - 1
+  - 2
+  - 3
+  - 5
+  - 7
+  - 10
 --- !u!1 &731532062
 GameObject:
   m_ObjectHideFlags: 0
@@ -982,6 +1100,54 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 731532062}
   m_CullTransparentMesh: 1
+--- !u!1 &761390824
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 761390826}
+  - component: {fileID: 761390825}
+  m_Layer: 0
+  m_Name: AbilityManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &761390825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 761390824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 712c259cd4a1442078fbddc6a9c4f635, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChromaticCascade.Gameplay.Abilities.AbilityManager
+  rowClearPrefab: {fileID: 0}
+  colorBombPrefab: {fileID: 0}
+  cascadePrefab: {fileID: 0}
+  timeFreezePrefab: {fileID: 0}
+--- !u!4 &761390826
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 761390824}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.92962, y: -3.10111, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &857616117
 GameObject:
   m_ObjectHideFlags: 0
@@ -1950,7 +2116,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5f5ce095172e463d9455629d995fcc4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChromaticCascade.Gameplay.EvolutionDetector
-  minBlocksForEvolution: 4
   allow2x2Detection: 1
   debugVisualization: 1
 --- !u!1 &1360473283
@@ -2753,3 +2918,6 @@ SceneRoots:
   - {fileID: 217251426}
   - {fileID: 2033358703}
   - {fileID: 286090922}
+  - {fileID: 711633460}
+  - {fileID: 761390826}
+  - {fileID: 491621455}

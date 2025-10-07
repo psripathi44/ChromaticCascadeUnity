@@ -20,6 +20,8 @@ namespace ChromaticCascade.Gameplay
         [Header("State")]
         [SerializeField] private Vector2Int currentGridPosition;
         [SerializeField] private bool isLocked = false;
+        [SerializeField] private bool isEvolved = false; // Marks block as evolved (visual/tracking)
+        [SerializeField] private bool justEvolved = false; // Prevents falling in same frame
         
         // Properties
         public BlockData BlockData => blockData;
@@ -27,6 +29,8 @@ namespace ChromaticCascade.Gameplay
         public TierData TierData => blockData?.tierData;
         public Vector2Int GridPosition => currentGridPosition;
         public bool IsLocked => isLocked;
+        public bool IsEvolved => isEvolved;
+        public bool JustEvolved => justEvolved;
         
         private void Awake()
         {
@@ -101,10 +105,33 @@ namespace ChromaticCascade.Gameplay
         }
         
         /// <summary>
+        /// Mark this block as evolved (for tracking/visual purposes)
+        /// Marks as "just evolved" to prevent immediate falling
+        /// </summary>
+        public void MarkAsEvolved()
+        {
+            isEvolved = true;
+            isLocked = true;
+            justEvolved = true; // Prevent falling in same frame
+        }
+        
+        /// <summary>
+        /// Clear the "just evolved" flag (called after evolution processing completes)
+        /// </summary>
+        public void ClearJustEvolved()
+        {
+            justEvolved = false;
+        }
+        
+        /// <summary>
         /// Unlock the block (can be moved)
         /// </summary>
         public void Unlock()
         {
+            // Don't unlock blocks that just evolved (this frame)
+            if (justEvolved)
+                return;
+                
             isLocked = false;
         }
         

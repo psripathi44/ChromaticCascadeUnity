@@ -103,3 +103,4 @@ InitTestScene*.unity*
 .vscode/
 docs/
 *.md
+*.DS_Store
