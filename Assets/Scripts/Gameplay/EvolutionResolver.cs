@@ -124,7 +124,6 @@ namespace ChromaticCascade.Gameplay
             if (currentBlockData.tierData.tierLevel >= 5)
             {
                 Debug.Log("Already at max tier (5), cannot evolve further");
-                // TODO: Award bonus points instead
                 RemoveBlocks(blocks);
                 return;
             }
@@ -139,54 +138,100 @@ namespace ChromaticCascade.Gameplay
                 return;
             }
             
-            // Calculate center position for new block
+            // Calculate center position (used for ability trigger location)
             Vector2Int centerPos = EvolutionDetector.Instance.GetCenterPosition(blocks);
             
-            // FIRST: Remove ALL old blocks (clears the center position too)
+            // Get tier info
+            int fromTier = currentBlockData.tierData.tierLevel;
+            int toTier = nextTierData.tierData.tierLevel;
+            
+            Debug.Log($"[Evolution] {blocks.Count} {currentBlockData.GetBlockID()} blocks → {nextTierData.GetBlockID()} at {centerPos}");
+            
+            // FIRST: Trigger ability at MERGE location (before blocks removed)
+            if (Abilities.AbilityManager.Instance != null && toTier >= 2 && toTier <= 5)
+            {
+                Debug.Log($"[Evolution] Triggering Tier {toTier} ability at {centerPos}");
+                Abilities.AbilityManager.Instance.TriggerAbility(toTier, centerPos, blocks);
+            }
+            
+            // SECOND: Remove the matched blocks
             RemoveBlocks(blocks);
             
-            // SECOND: Create new evolved block at the now-empty center position
-            Vector3 worldPos = GridManager.Instance.GridToWorld(centerPos);
-            Block evolvedBlock = BlockFactory.Instance.CreateBlock(nextTierData, worldPos);
+            // THIRD: Spawn evolved block from TOP
+            SpawnEvolvedBlock(nextTierData, centerPos.x);
+            
+            // Award evolution points
+            if (ScoreManager.Instance != null)
+            {
+                ScoreManager.Instance.AddEvolutionPoints(fromTier, toTier, blocks.Count);
+            }
+            
+            // Notify listeners
+            OnEvolutionCompleted?.Invoke(toTier);
+        }
+        
+        /// <summary>
+        /// Spawn an evolved block from the top of the grid
+        /// </summary>
+        private void SpawnEvolvedBlock(BlockData blockData, int column)
+        {
+            // Get spawn position at top of grid
+            Vector2Int spawnGridPos = new Vector2Int(column, GridManager.Instance.GridHeight - 1);
+            
+            // Check if blocked, try adjacent columns
+            if (GridManager.Instance.IsCellOccupied(spawnGridPos))
+            {
+                Debug.LogWarning($"[Evolution] Column {column} blocked, trying adjacent");
+                for (int offset = 1; offset <= 3; offset++)
+                {
+                    int rightCol = column + offset;
+                    if (rightCol < GridManager.Instance.GridWidth)
+                    {
+                        Vector2Int rightPos = new Vector2Int(rightCol, GridManager.Instance.GridHeight - 1);
+                        if (!GridManager.Instance.IsCellOccupied(rightPos))
+                        {
+                            spawnGridPos = rightPos;
+                            break;
+                        }
+                    }
+                    
+                    int leftCol = column - offset;
+                    if (leftCol >= 0)
+                    {
+                        Vector2Int leftPos = new Vector2Int(leftCol, GridManager.Instance.GridHeight - 1);
+                        if (!GridManager.Instance.IsCellOccupied(leftPos))
+                        {
+                            spawnGridPos = leftPos;
+                            break;
+                        }
+                    }
+                }
+                
+                if (GridManager.Instance.IsCellOccupied(spawnGridPos))
+                {
+                    Debug.LogError($"[Evolution] All spawn blocked! Block lost.");
+                    return;
+                }
+            }
+            
+            // Create evolved block at spawn position
+            Vector3 spawnWorldPos = GridManager.Instance.GridToWorld(spawnGridPos);
+            Block evolvedBlock = BlockFactory.Instance.CreateBlock(blockData, spawnWorldPos);
             
             if (evolvedBlock != null)
             {
-                // CRITICAL: Remove any FallingBlock component (factory might have added it)
-                FallingBlock fallingComp = evolvedBlock.GetComponent<FallingBlock>();
-                if (fallingComp != null)
+                // Add FallingBlock so it falls normally
+                FallingBlock falling = evolvedBlock.gameObject.GetComponent<FallingBlock>();
+                if (falling == null)
                 {
-                    Object.DestroyImmediate(fallingComp);
+                    falling = evolvedBlock.gameObject.AddComponent<FallingBlock>();
                 }
+                falling.Initialize(evolvedBlock);
                 
-                // Mark as evolved so it NEVER falls, even during gravity updates
                 evolvedBlock.MarkAsEvolved();
                 
-                // Register in grid
-                GridManager.Instance.SetCellOccupied(centerPos, evolvedBlock);
-                
-                // Play evolution VFX
+                Debug.Log($"[Evolution] Spawned {blockData.GetBlockID()} at top (col {spawnGridPos.x})");
                 evolvedBlock.PlayEvolutionEffect();
-                
-                // Award evolution points
-                int fromTier = currentBlockData.tierData.tierLevel;
-                int toTier = nextTierData.tierData.tierLevel;
-                
-                if (ScoreManager.Instance != null)
-                {
-                    ScoreManager.Instance.AddEvolutionPoints(fromTier, toTier, blocks.Count);
-                }
-                
-                // Notify listeners
-                OnEvolutionCompleted?.Invoke(nextTierData.tierData.tierLevel);
-                
-                Debug.Log($"Evolved {blocks.Count} {currentBlockData.GetBlockID()} blocks into {nextTierData.GetBlockID()} at {centerPos}");
-                
-                // TRIGGER TIER ABILITY (gameplay.md: "Automatically activate when their triggering match occurs")
-                // Tier 2+: Row Clear, Color Bomb, Cascade, Time Freeze
-                if (Abilities.AbilityManager.Instance != null && toTier >= 2)
-                {
-                    Abilities.AbilityManager.Instance.TriggerAbility(toTier, centerPos, blocks);
-                }
             }
         }
         
