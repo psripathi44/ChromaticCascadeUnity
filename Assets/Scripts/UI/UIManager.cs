@@ -1,6 +1,10 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using ChromaticCascade.Gameplay;
+using ChromaticCascade.Scoring;
+using ChromaticCascade.Data;
+using System.Collections;
 
 namespace ChromaticCascade.UI
 {
@@ -55,6 +59,9 @@ namespace ChromaticCascade.UI
             // Initialize displays
             UpdateScore(0);
             UpdateCombo(0, 1f);
+            
+            // Fix any "New Text" labels by setting proper text
+            FixTextLabels();
         }
         
         private void InitializeUI()
@@ -78,9 +85,50 @@ namespace ChromaticCascade.UI
         
         private void SubscribeToEvents()
         {
-            // Subscribe to score events (will be implemented in Sprint 2)
-            // TODO: ScoreManager.OnScoreChanged += UpdateScore;
-            // TODO: ScoreManager.OnComboChanged += UpdateCombo;
+            // Subscribe to score events
+            if (ScoreManager.Instance != null)
+            {
+                ScoreManager.Instance.OnScoreChanged += HandleScoreChanged;
+                ScoreManager.Instance.OnComboChanged += UpdateCombo;
+            }
+            
+            // Subscribe to block spawner for next block preview
+            if (BlockSpawner.Instance != null)
+            {
+                StartCoroutine(UpdateNextBlockPreviewRoutine());
+            }
+        }
+        
+        private void HandleScoreChanged(int newScore, int deltaScore)
+        {
+            UpdateScore(newScore);
+        }
+        
+        private System.Collections.IEnumerator UpdateNextBlockPreviewRoutine()
+        {
+            // Wait a frame to ensure BlockSpawner is initialized
+            yield return null;
+            
+            while (true)
+            {
+                if (BlockSpawner.Instance != null && BlockSpawner.Instance.NextBlockData != null)
+                {
+                    // Get sprite and color from next block data
+                    var nextBlockData = BlockSpawner.Instance.NextBlockData;
+                    if (nextBlockData != null)
+                    {
+                        // Get sprite from block data
+                        Sprite blockSprite = nextBlockData.blockSprite;
+                        Color blockColor = nextBlockData.colorData != null ? 
+                            nextBlockData.colorData.baseColor : Color.white;
+                        
+                        // Update preview
+                        UpdateNextBlockPreview(blockSprite, blockColor);
+                    }
+                }
+                
+                yield return new WaitForSeconds(0.5f);
+            }
         }
         
         /// <summary>
@@ -227,7 +275,47 @@ namespace ChromaticCascade.UI
         private void OnDestroy()
         {
             // Unsubscribe from events
-            // TODO: Implement when score manager is ready
+            if (ScoreManager.Instance != null)
+            {
+                ScoreManager.Instance.OnScoreChanged -= HandleScoreChanged;
+                ScoreManager.Instance.OnComboChanged -= UpdateCombo;
+            }
+            
+            // Stop all coroutines
+            StopAllCoroutines();
+        }
+        
+        private void FixTextLabels()
+        {
+            // Fix any TextMeshPro components with default "New Text" value
+            TextMeshProUGUI[] allTextComponents = GetComponentsInChildren<TextMeshProUGUI>(true);
+            foreach (var textComponent in allTextComponents)
+            {
+                if (textComponent.text == "New Text")
+                {
+                    // Set appropriate text based on the component's name
+                    if (textComponent.name.ToLower().Contains("score"))
+                    {
+                        textComponent.text = "0";
+                    }
+                    else if (textComponent.name.ToLower().Contains("combo"))
+                    {
+                        textComponent.text = "x1.0";
+                    }
+                    else if (textComponent.name.ToLower().Contains("next"))
+                    {
+                        textComponent.text = "Next";
+                    }
+                    else if (textComponent.name.ToLower().Contains("label"))
+                    {
+                        textComponent.text = "";
+                    }
+                    else
+                    {
+                        textComponent.text = "";
+                    }
+                }
+            }
         }
     }
 }

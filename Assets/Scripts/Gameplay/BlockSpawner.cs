@@ -169,6 +169,39 @@ namespace ChromaticCascade.Gameplay
         }
         
         /// <summary>
+        /// Queue a specific block to be spawned next (used for evolved blocks)
+        /// </summary>
+        public void QueueSpecificBlock(BlockData blockData)
+        {
+            if (blockData == null)
+            {
+                Debug.LogError("[BlockSpawner] Cannot queue null block data!");
+                return;
+            }
+            
+            // Replace the next block in the queue with this specific block
+            if (nextBlockQueue.Count > 0)
+            {
+                // Remove the current next block
+                nextBlockQueue.Dequeue();
+            }
+            
+            // Add the specific block to the front of the queue
+            System.Collections.Generic.Queue<BlockData> newQueue = new System.Collections.Generic.Queue<BlockData>();
+            newQueue.Enqueue(blockData);
+            
+            // Add the rest of the blocks back
+            while (nextBlockQueue.Count > 0)
+            {
+                newQueue.Enqueue(nextBlockQueue.Dequeue());
+            }
+            
+            nextBlockQueue = newQueue;
+            
+            Debug.Log($"[BlockSpawner] Queued specific block: {blockData.GetBlockID()} as next block");
+        }
+        
+        /// <summary>
         /// Reset the spawner for a new game
         /// </summary>
         public void ResetGame()

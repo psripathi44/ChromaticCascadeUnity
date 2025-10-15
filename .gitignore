@@ -104,3 +104,4 @@ InitTestScene*.unity*
 docs/
 *.md
 *.DS_Store
+.zencoder*

@@ -138,7 +138,7 @@ namespace ChromaticCascade.Gameplay
                 return;
             }
             
-            // Calculate center position (used for ability trigger location)
+            // Calculate center position (used for ability trigger location and evolved block placement)
             Vector2Int centerPos = EvolutionDetector.Instance.GetCenterPosition(blocks);
             
             // Get tier info
@@ -147,18 +147,49 @@ namespace ChromaticCascade.Gameplay
             
             Debug.Log($"[Evolution] {blocks.Count} {currentBlockData.GetBlockID()} blocks → {nextTierData.GetBlockID()} at {centerPos}");
             
-            // FIRST: Trigger ability at MERGE location (before blocks removed)
-            if (Abilities.AbilityManager.Instance != null && toTier >= 2 && toTier <= 5)
-            {
-                Debug.Log($"[Evolution] Triggering Tier {toTier} ability at {centerPos}");
-                Abilities.AbilityManager.Instance.TriggerAbility(toTier, centerPos, blocks);
-            }
-            
-            // SECOND: Remove the matched blocks
+            // FIRST: Remove the matched blocks (but save the center position for the evolved block)
             RemoveBlocks(blocks);
             
-            // THIRD: Spawn evolved block from TOP
-            SpawnEvolvedBlock(nextTierData, centerPos.x);
+            // SECOND: For Tier 1 blocks evolving to Tier 2, spawn the evolved block from the top
+            if (fromTier == 1 && toTier == 2)
+            {
+                // Spawn the evolved block from the top in a random column
+                int randomColumn = Random.Range(0, GridManager.Instance.GridWidth);
+                SpawnEvolvedBlock(nextTierData, randomColumn);
+                
+                Debug.Log($"[Evolution] Spawned Tier 2 block at top (col {randomColumn})");
+                
+                // THIRD: Trigger ability for the evolved block (at the center of the match)
+                if (Abilities.AbilityManager.Instance != null)
+                {
+                    Debug.Log($"[Evolution] Triggering Tier {toTier} ability at {centerPos}");
+                    Abilities.AbilityManager.Instance.TriggerAbility(toTier, centerPos, blocks);
+                }
+            }
+            else
+            {
+                // For higher tier evolutions (Tier 2->3, 3->4, 4->5), place at the match center
+                Vector3 worldPos = GridManager.Instance.GridToWorld(centerPos);
+                Block evolvedBlock = BlockFactory.Instance.CreateBlock(nextTierData, worldPos);
+                
+                if (evolvedBlock != null)
+                {
+                    // Place the evolved block at the center position
+                    evolvedBlock.SetGridPosition(centerPos);
+                    GridManager.Instance.SetCellOccupied(centerPos, evolvedBlock);
+                    evolvedBlock.MarkAsEvolved();
+                    evolvedBlock.PlayEvolutionEffect();
+                    
+                    Debug.Log($"[Evolution] Created {nextTierData.GetBlockID()} at match center {centerPos}");
+                    
+                    // THIRD: Trigger ability for the evolved block
+                    if (Abilities.AbilityManager.Instance != null && toTier >= 3 && toTier <= 5)
+                    {
+                        Debug.Log($"[Evolution] Triggering Tier {toTier} ability at {centerPos}");
+                        Abilities.AbilityManager.Instance.TriggerAbility(toTier, centerPos, blocks);
+                    }
+                }
+            }
             
             // Award evolution points
             if (ScoreManager.Instance != null)
@@ -175,6 +206,19 @@ namespace ChromaticCascade.Gameplay
         /// </summary>
         private void SpawnEvolvedBlock(BlockData blockData, int column)
         {
+            // Instead of directly spawning, queue the block in the BlockSpawner
+            // This ensures it follows the normal spawning rules and player can control it
+            if (BlockSpawner.Instance != null)
+            {
+                // Queue the evolved block as the next block to spawn
+                BlockSpawner.Instance.QueueSpecificBlock(blockData);
+                Debug.Log($"[Evolution] Queued {blockData.GetBlockID()} as next block to spawn");
+                return;
+            }
+            
+            // Fallback if BlockSpawner is not available (shouldn't happen)
+            Debug.LogWarning("[Evolution] BlockSpawner not available, using direct spawn method");
+            
             // Get spawn position at top of grid
             Vector2Int spawnGridPos = new Vector2Int(column, GridManager.Instance.GridHeight - 1);
             
@@ -243,14 +287,20 @@ namespace ChromaticCascade.Gameplay
             // Track which columns were affected for gravity update
             HashSet<int> affectedColumns = new HashSet<int>();
             
+            // Debug log to track which blocks are being removed
+            Debug.Log($"[Evolution] Removing {blocks.Count} blocks:");
+            
             foreach (Block block in blocks)
             {
                 if (block != null)
                 {
-                    affectedColumns.Add(block.GridPosition.x);
+                    Vector2Int pos = block.GridPosition;
+                    affectedColumns.Add(pos.x);
+                    
+                    Debug.Log($"[Evolution] Removing block at {pos} - {block.BlockData.GetBlockID()}");
                     
                     // Clear from grid
-                    GridManager.Instance.ClearCell(block.GridPosition);
+                    GridManager.Instance.ClearCell(pos);
                     
                     // Return to pool
                     BlockFactory.Instance.ReturnToPool(block);
@@ -275,8 +325,14 @@ namespace ChromaticCascade.Gameplay
                     Vector2Int pos = new Vector2Int(column, y);
                     Block block = GridManager.Instance.GetBlockAt(pos);
                     
-                    // Skip blocks that just evolved THIS frame (let them settle first)
-                    if (block != null && block.IsLocked && !block.JustEvolved)
+                    // Skip empty cells and blocks that just evolved THIS frame (let them settle first)
+                    if (block == null || block.JustEvolved)
+                    {
+                        continue;
+                    }
+                    
+                    // Only apply gravity to locked blocks
+                    if (block.IsLocked)
                     {
                         // Check if block can fall
                         Vector2Int below = pos + Vector2Int.down;
@@ -293,6 +349,8 @@ namespace ChromaticCascade.Gameplay
                                 
                                 fallingComponent = block.gameObject.AddComponent<FallingBlock>();
                                 fallingComponent.Initialize(block);
+                                
+                                Debug.Log($"[Gravity] Block at {pos} falling to fill empty space below");
                             }
                         }
                     }

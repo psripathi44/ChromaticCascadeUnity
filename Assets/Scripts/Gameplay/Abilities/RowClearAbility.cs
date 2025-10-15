@@ -29,7 +29,8 @@ namespace ChromaticCascade.Gameplay.Abilities
                 
                 Block block = GridManager.Instance.GetBlockAt(pos);
                 
-                if (block != null)
+                // Skip blocks that just evolved (especially the newly created Tier 2 block)
+                if (block != null && !block.JustEvolved)
                 {
                     blocksInRow.Add(block);
                 }
